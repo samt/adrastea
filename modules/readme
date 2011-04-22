@@ -1,3 +1,5 @@
 Modules Readme
-
-More to come...
+=======================================================
+This directory holds the modules' source code. They are
+compiled into the ../lib/ directory to be dynamically 
+loaded during runtime.
