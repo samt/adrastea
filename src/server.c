@@ -76,24 +76,23 @@ int irc_recv(char raw[])
  */
 int irc_send(const char * msg)
 {
-	char tosend[strlen(msg) + 2];
+	char buffer[strlen(msg) + 2];
 	
-	strcpy(tosend, msg);
-	strcat(tosend, IRC_LINE_END);
+	strcpy(buffer, msg);
+	strcat(buffer, IRC_LINE_END);
 
-	write(sock, tosend, strlen(tosend));
-	return strlen(tosend);
+	write(sock, buffer, strlen(buffer));
+	return strlen(buffer);
 }
 
-int irc_sendf(const char * msg, ...)
+int irc_sendf(const char * fmt, ...)
 {
-	char tosend[512] = {""};
-	int i, len, b = 0;
+	char buffer[512] = {""};
 	va_list vl;
 
-	va_start(vl,msg);
-	vsprintf(tosend, msg, vl);	
+	va_start(vl,fmt);
+	vsprintf(buffer, fmt, vl);	
 	va_end (vl);
 
-	return irc_send(tosend);
+	return irc_send(buffer);
 }
