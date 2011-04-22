@@ -13,6 +13,9 @@
 
 int get_int_cfg(const char * name);
 void get_str_cfg(const char * name, char * dest);
+int irc_recv(char raw[]);
+int irc_sendf(const char * msg, ...);
+int irc_send(const char * msg);
 
 int sock = 0;
 
@@ -151,6 +154,32 @@ void error(const char * msg)
 }
 
 /*
+ * Quit
+ * @param char flag - e: exit; d: don't exit
+ */
+void quit(char flag)
+{
+	char quit_msg[128];
+	char buffer[512];
+	
+	printf("Shutting down bot...\n");
+	get_str_cfg("quitmsg", quit_msg);
+	irc_sendf("QUIT :%s", quit_msg);
+
+	while(irc_recv(buffer) > 0)
+	{
+		printf("%s\n", buffer);
+	}
+
+	close(sock);
+
+	if (flag == 'e')
+	{
+		exit(0);
+	}
+}
+
+/*
  * Callback for the interupt signal
  */
 void interupt(int sig)
@@ -158,36 +187,14 @@ void interupt(int sig)
 	char buffer[512];
 
 	printf("\n");
+	printf("Interruption detected.\n");
 
 	if(sock != 0)
 	{
-		irc_send("QUIT");
-		if(irc_recv(buffer) > 1)
-		{
-			printf("%s\n", buffer);
-		}
-
-		close(sock);
+		quit('d');
 	}
 
-	printf("Interruption detected.\n");
-	printf("Shutting down bot...\n");
 	exit(sig);
-}
-
-/*
- * Quit
- */
-void quit()
-{char buffer[512];
-	char quit_msg[128];
-	get_str_cfg("quitmsg", quit_msg);
-
-	// Start the shutdown routine
-	sprintf(buffer, "QUIT :%s", quit_msg);
-	irc_send(buffer);
-	printf("Shutting down bot...\n");
-	close(sock);
 }
 
 #endif

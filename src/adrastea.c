@@ -73,7 +73,11 @@ int main()
 		{
 			printf("%s\n", raw);
 			parse_message(&msg, raw);
-			//printf("|%s|%s|%s|%s|\n", msg.prefix, msg.cmd, msg.target, msg.message);
+
+			if (0)
+			{
+				quit('e');
+			}
 		}
 
 		printf("Network error, reconnecting...\n");

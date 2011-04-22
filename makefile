@@ -1,2 +1,5 @@
-all: src/adrastea.c
-	gcc src/adrastea.c -ldl -o adrastea
+all: adrastea
+
+adrastea: src/adrastea.c
+	cc src/adrastea.c -ldl -o adrastea
+
