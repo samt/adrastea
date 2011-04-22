@@ -1,0 +1,22 @@
+====================================================================
+Adrastea IRC Bot
+====================================================================
+
+(c) 2011 Sam Thompson <sam@websyntax.net>
+The MIT License <http://www.opensource.org/licenses/mit-license.php>
+
+This IRC bot is written to complile with the GNU CCompiler (GCC), 
+i.e. It will not work on windows. This bot does not have features
+fully implemented yet, and it will not work properly as it is. It
+was designed to be a lightweight, multi-purpose bot.
+
+All configuration options are in sample.bot.conf, rename it to 
+bot.conf and ensure it sits in the same directory as the exceutable.
+The modules directory must be present, as many operations will be
+based entirely on them.
+
+Todo List:
+- Implement proper modules
+
+Future:
+- Listen on an port for telnet connections
