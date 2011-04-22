@@ -92,23 +92,8 @@ int irc_sendf(const char * msg, ...)
 	va_list vl;
 
 	va_start(vl,msg);
-	len = strlen(msg);
-
-	for(i = 0; len > i; i++)
-	{
-		if(msg[i] == '%' && msg[i + 1] == 's')
-		{
-			strcat(tosend, va_arg(vl, char *));
-			b = strlen(tosend);
-			i++;
-		}
-		else
-		{
-			tosend[b] = msg[i];
-			b++;
-		}
-	}
-	va_end(vl);
+	vsprintf(tosend, msg, vl);	
+	va_end (vl);
 
 	return irc_send(tosend);
 }
