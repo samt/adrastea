@@ -16,8 +16,9 @@
 #include <netdb.h>
 #include <signal.h>
 #include <stdarg.h>
+#include <dlfcn.h>
 
-#define BUILD_NUM 2
+#define BUILD_NUM 3
 #define CONFIG_FILE "bot.conf"
 
 #include "adrastea.h"
