@@ -33,7 +33,7 @@ int main()
 	int port;
 	char raw[512];
 	char buffer[512];
-	char host[255], nick[255], name[255], user[255], pass[255], channels[512], quit_msg[128];
+	char host[255], nick[255], name[255], user[255], pass[255], channels[512];
 	irc_message msg;
 
 	(void) signal(SIGINT,interupt);
@@ -56,7 +56,6 @@ int main()
 	get_str_cfg("user", user);
 	get_str_cfg("pass", pass);
 	get_str_cfg("channels", channels);
-	get_str_cfg("quitmsg", quit_msg);
 	port = get_int_cfg("port");
 
 	/* Connection loop */
@@ -66,10 +65,8 @@ int main()
 		irc_connect(host, port);
 
 		/* Send our connection details */
-		sprintf(buffer, "NICK %s", nick);
-		irc_send(buffer);
-		sprintf(buffer, "USER %s * 8 :%s", user, name);
-		irc_send(buffer);
+		irc_sendf("NICK %s", nick);
+		irc_sendf("USER %s * 8 :%s", user, name);
 
 		/* Message loop */
 		while(irc_recv(raw) > 0)
@@ -81,12 +78,6 @@ int main()
 
 		printf("Network error, reconnecting...\n");
 	}
-
-	// Start the shutdown routine
-	sprintf(buffer, "QUIT :%s", quit_msg);
-	irc_send(buffer);
-	printf("Shutting down bot...\n");
-	close(sock);
 
 	return 0;
 }

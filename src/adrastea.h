@@ -11,6 +11,9 @@
 
 #define IRC_LINE_END "\r\n"
 
+int get_int_cfg(const char * name);
+void get_str_cfg(const char * name, char * dest);
+
 int sock = 0;
 
 typedef enum {
@@ -170,6 +173,21 @@ void interupt(int sig)
 	printf("Interruption detected.\n");
 	printf("Shutting down bot...\n");
 	exit(sig);
+}
+
+/*
+ * Quit
+ */
+void quit()
+{char buffer[512];
+	char quit_msg[128];
+	get_str_cfg("quitmsg", quit_msg);
+
+	// Start the shutdown routine
+	sprintf(buffer, "QUIT :%s", quit_msg);
+	irc_send(buffer);
+	printf("Shutting down bot...\n");
+	close(sock);
 }
 
 #endif

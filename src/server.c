@@ -76,11 +76,39 @@ int irc_recv(char raw[])
  */
 int irc_send(const char * msg)
 {
-	char tosend[512];
-
+	char tosend[strlen(msg) + 2];
+	
 	strcpy(tosend, msg);
 	strcat(tosend, IRC_LINE_END);
 
 	write(sock, tosend, strlen(tosend));
 	return strlen(tosend);
+}
+
+int irc_sendf(const char * msg, ...)
+{
+	char tosend[512] = {""};
+	int i, len, b = 0;
+	va_list vl;
+
+	va_start(vl,msg);
+	len = strlen(msg);
+
+	for(i = 0; len > i; i++)
+	{
+		if(msg[i] == '%' && msg[i + 1] == 's')
+		{
+			strcat(tosend, va_arg(vl, char *));
+			b = strlen(tosend);
+			i++;
+		}
+		else
+		{
+			tosend[b] = msg[i];
+			b++;
+		}
+	}
+	va_end(vl);
+
+	return irc_send(tosend);
 }
