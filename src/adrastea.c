@@ -22,8 +22,10 @@
 #define CONFIG_FILE "bot.conf"
 
 #include "adrastea.h"
+#include "functions.c"
 #include "config.c"
 #include "server.c"
+#include "modules.c"
 
 /**
  * Main function
@@ -48,6 +50,7 @@ int main()
 	printf("================================================================================\n");
 
 	/* Get our config ready to go */
+	printf("Loading Configuration Settings...\n");
 	load_config();
 
 	get_str_cfg("host", host);
@@ -57,6 +60,9 @@ int main()
 	get_str_cfg("pass", pass);
 	get_str_cfg("channels", channels);
 	port = get_int_cfg("port");
+
+	printf("Loading modules...\n");
+	load_modules();
 
 	/* Connection loop */
 	for(;;)

@@ -6,7 +6,7 @@
  * The MIT License
  *****************************************************************************/
 
-/*
+/**
  * Connect
  * @param const char ptr - Host
  * @param int - Port
@@ -44,7 +44,7 @@ void irc_connect(const char * host, int port)
 	}
 }
 
-/*
+/**
  * Recv a line
  */
 int irc_recv(char raw[])
@@ -71,7 +71,7 @@ int irc_recv(char raw[])
 	return strlen(raw);
 }
 
-/*
+/**
  * Send a line
  */
 int irc_send(const char * msg)
@@ -85,6 +85,9 @@ int irc_send(const char * msg)
 	return strlen(buffer);
 }
 
+/**
+ * Send a line (but with a format)
+ */
 int irc_sendf(const char * fmt, ...)
 {
 	char buffer[512] = {""};
