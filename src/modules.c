@@ -14,6 +14,8 @@ typedef void (*send_resp_f) ();
 typedef int (*resp_f) ();
 
 typedef struct {
+	void * plugin;
+
 	init_f		init;
 	send_resp_f send;
 	resp_f		respond;
@@ -22,18 +24,27 @@ typedef struct {
 modules_ht * s_modules;
 int s_modules_size = 0;
 
-void run_event(irc_message m)
+void run_event(irc_message * m)
 {
+	int i;
+
+	/* Find the ones that will respond to the event */
+	for(i = 0; i < s_modules_size; i++)
+	{
+		if(s_modules[i].respond(m) > 0)
+		{
+			s_modules[i].send(m);
+		}
+	}
 }
 
 void load_modules()
 {
 	DIR * dip;
 	struct dirent * dit;
-	void * plugin;
 	char filename[255];
 	char * result;
-	int i;
+	int i, c;
 
 	if((dip = opendir("./lib/")) == NULL)
 	{
@@ -47,7 +58,7 @@ void load_modules()
 		s_modules_size = 0;
 	}
 
-	s_modules = malloc(sizeof(modules_ht) * s_modules_size);
+	//s_modules = malloc(sizeof(modules_ht) * s_modules_size);
 
 	while((dit = readdir(dip)) != NULL)
 	{
@@ -55,40 +66,39 @@ void load_modules()
 		{
 			strcpy(filename, "./lib/");
 			strcat(filename, dit->d_name);
-			printf(" - Loaded %s", dit->d_name);
-
-			plugin = dlopen(filename, RTLD_NOW);
-			result = dlerror();
-			if(result)
-			{
-				error(result);
-			}
 
 			s_modules = (modules_ht*) realloc(s_modules, (sizeof(modules_ht) * ++s_modules_size));
+			c = s_modules_size - 1;
 
-			printf(" (%d)\n", (s_modules_size - 1));
-			s_modules[s_modules_size - 1].init = dlsym(plugin, "init");
+			s_modules[c].plugin = dlopen(filename, RTLD_NOW);
 			result = dlerror();
 			if(result)
 			{
 				error(result);
 			}
 
-			s_modules[s_modules_size - 1].send = dlsym(plugin, "send");
+			s_modules[c].init = dlsym(s_modules[c].plugin, "init");
 			result = dlerror();
 			if(result)
 			{
 				error(result);
 			}
 
-			s_modules[s_modules_size - 1].respond = dlsym(plugin, "respond");
+			s_modules[c].send = dlsym(s_modules[c].plugin, "send_responses");
 			result = dlerror();
 			if(result)
 			{
 				error(result);
 			}
 
-			dlclose(plugin);
+			s_modules[c].respond = dlsym(s_modules[c].plugin, "respond");
+			result = dlerror();
+			if(result)
+			{
+				error(result);
+			}
+
+			printf(" - Loaded %s\n", dit->d_name);
 		}
 	}
 
@@ -96,4 +106,20 @@ void load_modules()
 	{
 		printf("[WARNING] Directory did not properly close\n");
 	}
+
+	/* Run all inits */
+	for(i = 0; i < s_modules_size; i++)
+	{
+		s_modules[i].init();
+	}
 }
+
+void unload_modules()
+{
+	int i;
+	for(i = 0; i < s_modules_size; i++)
+	{
+		dlclose(s_modules[i].plugin);
+	}
+}
+

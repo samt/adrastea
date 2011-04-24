@@ -6,6 +6,12 @@
  * The MIT License
  *****************************************************************************/
 
+#include <string.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <netdb.h>
+
 /**
  * Connect
  * @param const char ptr - Host
@@ -37,7 +43,8 @@ void irc_connect(const char * host, int port)
 	serv_addr.sin_port = htons(port);
 
 	/* Connect to that shit */
-	printf("Connecting to %s:%d...\n", (char*) inet_ntoa(*((struct in_addr *)server->h_addr)), port);
+	//(char*) inet_ntoa(*((struct in_addr *)server->h_addr))
+	printf("Connecting to %s:%d...\n", host, port);
 	if (connect(sock,(struct sockaddr *) &serv_addr,sizeof(serv_addr)) < 0)
 	{
 		error("Could not connect to server");

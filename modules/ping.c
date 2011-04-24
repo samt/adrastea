@@ -17,7 +17,6 @@
 void init()
 {
 	// Does nothing
-	printf("MOTHERFUCKER BETTER NOT SAY I DON'T DO NOTHING.\n");
 }
 
 /*
@@ -26,7 +25,7 @@ void init()
  */
 int respond(irc_message * m)
 {
-	//return streq(m->cmd, "PING") ? 1 : 0;
+	return streq(m->cmd, "PING") ? 1 : 0;
 }
 
 /*
@@ -35,7 +34,9 @@ int respond(irc_message * m)
  * If the responce for respond() is greater than 0, this will be called, and it
  * expects the second param to be filled with goodies to send off.
  */
-void send_responses(irc_message * m, char * msg[])
+void send_responses(irc_message * m)
 {
-	//sprintf(msg[0], "PONG :%s", m->message);
+	printf("PONG :%s", m->message);
+	irc_sendf("PONG :%s", m->message);
 }
+

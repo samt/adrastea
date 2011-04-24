@@ -79,6 +79,7 @@ int main()
 		{
 			printf("%s\n", raw);
 			parse_message(&msg, raw);
+			run_event(&msg);
 
 			if (0)
 			{

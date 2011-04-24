@@ -1,3 +1,5 @@
+void unload_modules();
+
 /*
  * Parse a raw IRC message
  */
@@ -120,6 +122,9 @@ void quit(char flag)
 	char buffer[512];
 	
 	printf("Shutting down bot...\n");
+
+	unload_modules();
+
 	get_str_cfg("quitmsg", quit_msg);
 	irc_sendf("QUIT :%s", quit_msg);
 
