@@ -10,6 +10,8 @@
 #include <string.h>
 #include "../src/adrastea.h"
 
+
+
 /*
  * Initialization
  * Called when the all modules are re/loaded
@@ -34,9 +36,8 @@ int respond(irc_message * m)
  * If the responce for respond() is greater than 0, this will be called, and it
  * expects the second param to be filled with goodies to send off.
  */
-void send_responses(irc_message * m)
+void send_responses(irc_message * m, char msg[])
 {
 	printf("PONG :%s", m->message);
-	irc_sendf("PONG :%s", m->message);
+	sprintf(msg, "PONG :%s", m->message);
 }
-

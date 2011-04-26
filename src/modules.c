@@ -15,10 +15,10 @@ typedef int (*resp_f) ();
 
 typedef struct {
 	void * plugin;
-
 	init_f		init;
 	send_resp_f send;
 	resp_f		respond;
+	int 		number;
 } modules_ht;
 
 modules_ht * s_modules;
@@ -26,16 +26,40 @@ int s_modules_size = 0;
 
 void run_event(irc_message * m)
 {
-	int i;
+	int i, j, k = 0, total = 0;
+	char ** queue;
 
-	/* Find the ones that will respond to the event */
+	// Find the ones that will respond to the event 
 	for(i = 0; i < s_modules_size; i++)
 	{
-		if(s_modules[i].respond(m) > 0)
+		s_modules[i].number = s_modules[i].respond(m);
+		total += s_modules[i].number;
+		//	s_modules[i].send(m);
+	}
+
+	queue = malloc(total);
+
+	// Get and Queue the responces
+	for(i = 0; i < s_modules_size; i++)
+	{
+		if(s_modules[i].number > 0)
 		{
-			s_modules[i].send(m);
+			for(j = 0; j < s_modules[i].number; j++)
+			{
+				queue[k] = malloc(512);
+				s_modules[i].send(m, queue[k]);
+				k++;
+			}
 		}
 	}
+
+	// Send it off
+	for(i = 0; i < total; i++)
+	{
+		irc_send(queue[i]);
+	}
+
+	free(queue);
 }
 
 void load_modules()
