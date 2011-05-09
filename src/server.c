@@ -42,9 +42,7 @@ void irc_connect(const char * host, int port)
 	bcopy((char *)server->h_addr, (char *)&serv_addr.sin_addr.s_addr, server->h_length);
 	serv_addr.sin_port = htons(port);
 
-	/* Connect to that shit */
-	//(char*) inet_ntoa(*((struct in_addr *)server->h_addr))
-	printf("Connecting to %s:%d...\n", host, port);
+	printf("Connecting to %s:%d...\n", (char*) inet_ntoa(*((struct in_addr *)server->h_addr)), port);
 	if (connect(sock,(struct sockaddr *) &serv_addr,sizeof(serv_addr)) < 0)
 	{
 		error("Could not connect to server");
@@ -73,7 +71,7 @@ int irc_recv(char raw[])
 	while (b != '\n');
 
 	// Be rid of the last two bytes (\r\n)
-	raw[i - 1] = raw[i - 2] = '\0';
+	raw[--i] = raw[--i] = '\0';
 
 	return strlen(raw);
 }

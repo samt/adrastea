@@ -10,6 +10,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include "../src/adrastea.h"
+#include "../src/config.c"
 
 /*
  * Initialization
@@ -17,6 +18,7 @@
  */
 void init()
 {
+	load_config();
 }
 
 /*
@@ -25,10 +27,13 @@ void init()
  */
 int respond(irc_message * m, char ** responces)
 {
-	if(streq(m->cmd, "PING"))
+	if(starts_with(m->message, "This nickname is registered") && streq("NickServ", m->nick))
 	{
-		responces[0] = malloc(7 + strlen(m->message));
-		sprintf(responces[0], "PONG :%s", m->message);
+		char pw[255];
+		get_str_cfg("pass", pw);
+		
+		responces[0] = malloc(28 + strlen(pw));
+		sprintf(responces[0], "PRIVMSG NickServ :IDENTIFY %s", pw);
 		return 1;
 	}
 	else

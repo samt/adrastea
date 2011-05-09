@@ -7,70 +7,28 @@
  *****************************************************************************/
 #include <dirent.h>
 
-#define is_dot_so(fn) (strcmp(fn+strlen(fn)-3,".so")==0)
-
-typedef void (*init_f) ();
-typedef void (*send_resp_f) ();
-typedef int (*resp_f) ();
-
 typedef struct {
 	void * plugin;
 	init_f		init;
-	send_resp_f send;
 	resp_f		respond;
-	int 		number;
 } modules_ht;
 
 modules_ht * s_modules;
 int s_modules_size = 0;
 
-void run_event(irc_message * m)
-{
-	int i, j, k = 0, total = 0;
-	char ** queue;
-
-	// Find the ones that will respond to the event 
-	for(i = 0; i < s_modules_size; i++)
-	{
-		s_modules[i].number = s_modules[i].respond(m);
-		total += s_modules[i].number;
-		//	s_modules[i].send(m);
-	}
-
-	queue = malloc(total);
-
-	// Get and Queue the responces
-	for(i = 0; i < s_modules_size; i++)
-	{
-		if(s_modules[i].number > 0)
-		{
-			for(j = 0; j < s_modules[i].number; j++)
-			{
-				queue[k] = malloc(512);
-				s_modules[i].send(m, queue[k]);
-				k++;
-			}
-		}
-	}
-
-	// Send it off
-	for(i = 0; i < total; i++)
-	{
-		irc_send(queue[i]);
-	}
-
-	free(queue);
-}
-
-void load_modules()
+/*
+ * Load Modules
+ * @return int - 1 on success, 2 on failure
+ */
+int load_modules()
 {
 	DIR * dip;
 	struct dirent * dit;
 	char filename[255];
 	char * result;
-	int i, c;
+	int c, i;
 
-	if((dip = opendir("./lib/")) == NULL)
+	if((dip = opendir(MODULES_DIR)) == NULL)
 	{
 		error("Unable to load the open the 'lib' directory to load modules");
 	}
@@ -82,18 +40,21 @@ void load_modules()
 		s_modules_size = 0;
 	}
 
-	//s_modules = malloc(sizeof(modules_ht) * s_modules_size);
-
+	// read through the directory 
 	while((dit = readdir(dip)) != NULL)
 	{
-		if(is_dot_so(dit->d_name))
+		if(dot_so(dit->d_name))
 		{
+			// Get our real path ready
 			strcpy(filename, "./lib/");
 			strcat(filename, dit->d_name);
+	
+			// Increase the size of our hash table
+			c = s_modules_size;
+			s_modules_size++;
+			s_modules = (modules_ht*) realloc(s_modules, (sizeof(modules_ht) * s_modules_size));
 
-			s_modules = (modules_ht*) realloc(s_modules, (sizeof(modules_ht) * ++s_modules_size));
-			c = s_modules_size - 1;
-
+			// Open and error check
 			s_modules[c].plugin = dlopen(filename, RTLD_NOW);
 			result = dlerror();
 			if(result)
@@ -101,6 +62,7 @@ void load_modules()
 				error(result);
 			}
 
+			// Grab init function and error check
 			s_modules[c].init = dlsym(s_modules[c].plugin, "init");
 			result = dlerror();
 			if(result)
@@ -108,13 +70,7 @@ void load_modules()
 				error(result);
 			}
 
-			s_modules[c].send = dlsym(s_modules[c].plugin, "send_responses");
-			result = dlerror();
-			if(result)
-			{
-				error(result);
-			}
-
+			// Grab our responces and error check
 			s_modules[c].respond = dlsym(s_modules[c].plugin, "respond");
 			result = dlerror();
 			if(result)
@@ -122,6 +78,7 @@ void load_modules()
 				error(result);
 			}
 
+			// Upon a successful load, tell it to the world
 			printf(" - Loaded %s\n", dit->d_name);
 		}
 	}
@@ -138,6 +95,45 @@ void load_modules()
 	}
 }
 
+/*
+ * Dispatch event
+ * @param irc_message* - Pointer to the current IRC message
+ * @param char** - Pointer to an array of chars
+ * @return int - number of items in the array to send
+ */
+int dispatch_event(irc_message * msg, char ** queue)
+{
+	int i, j, n, total = 0;
+	char ** q;
+
+	for(i = 0; i < s_modules_size; i++)
+	{
+		q = malloc(sizeof(char*));
+		n = s_modules[i].respond(msg, q);
+
+		// unload the temp queue into the main queue
+		if(n > 0)
+		{
+			queue = (char**) realloc(queue, (n + total));
+
+			for(j = 0; j < n; j++)
+			{
+				queue[total] = malloc(strlen(q[j]));
+				strcpy(queue[total], q[j]);
+				free(q[j]);
+				total++;
+			}
+		}
+
+		free(q);
+	}
+
+	return total;
+}
+
+/*
+ * Unload modules
+ */
 void unload_modules()
 {
 	int i;
@@ -146,4 +142,3 @@ void unload_modules()
 		dlclose(s_modules[i].plugin);
 	}
 }
-
